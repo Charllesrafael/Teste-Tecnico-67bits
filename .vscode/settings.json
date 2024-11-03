@@ -52,5 +52,5 @@
         "Temp/": true
     },
     "dotnet.preferCSharpExtension": true,
-    "dotnet.defaultSolution": "Unity Developer - Teste Técnico.sln"
+    "dotnet.defaultSolution": "Teste-Tecnico-67bits.sln"
 }
