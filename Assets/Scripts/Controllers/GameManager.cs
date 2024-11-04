@@ -1,6 +1,4 @@
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
@@ -11,9 +9,10 @@ namespace Charlles
     {
         public static GameManager Instance;
 
-        [Header("Package")]
-        [SerializeField] private Transform m_backpackPlayer;
-        [SerializeField] private Package m_packagePrefab;
+        [Header("Backpack")]
+        [SerializeField] private int m_initialCapacity = 1;
+        [SerializeField] private Backpack m_backpack;
+        [SerializeField] private TextMeshProUGUI m_textBackpackCapacity;
         [SerializeField] private UnityEvent m_eventColetable;
 
         [Header("Money")]
@@ -21,10 +20,9 @@ namespace Charlles
         [SerializeField] private UnityEvent m_eventChangeMoney;
 
 
-
-
-        private Transform m_previousPack;
-        private Stack<Package> m_packageList;
+        [Header("LevelUp")]
+        [SerializeField] private SkinnedMeshRenderer m_meshPlayer;
+        [SerializeField] private UnityEvent m_eventLevelUp;
 
         private int m_allMoney;
 
@@ -39,46 +37,75 @@ namespace Charlles
             }
         }
 
+
+        private int m_backpackCapacity;
+
+        public int BackpackCapacity
+        {
+            get => m_backpackCapacity;
+            set
+            {
+                m_backpackCapacity = value;
+                BackpackCapacityUpdate();
+            }
+        }
+
         void Awake()
         {
             Instance = this;
-            m_previousPack = m_backpackPlayer;
-            m_packageList = new Stack<Package>();
+            BackpackCapacity = m_initialCapacity;
         }
 
         public void AddNewPack()
         {
-            Package currentPackage = Instantiate(m_packagePrefab, m_previousPack.position, m_previousPack.rotation);
-            currentPackage.SetTarget(m_previousPack);
-            m_packageList.Push(currentPackage);
-            m_previousPack = currentPackage.transform;
+            m_backpack.NewPackage();
             m_eventColetable?.Invoke();
+            BackpackCapacityUpdate();
         }
 
-        public bool HasPackage()
+        public void SellAll(int m_price)
         {
-            return m_packageList.Count > 0;
-        }
-
-        public void SellAll()
-        {
-            if (m_packageList.Count == 0)
+            if (m_backpack.GetPackgeCount() == 0)
                 return;
 
-            CreateEarnedMoneyText(m_packageList.Count);
-            AllMoney += m_packageList.Count;
+            CreateEarnedMoneyText(m_backpack.GetPackgeCount());
+            AllMoney += m_backpack.GetPackgeCount() * m_price;
 
-            foreach (var package in m_packageList)
-            {
-                Destroy(package.gameObject);
-            }
-            m_packageList.Clear();
-            m_previousPack = m_backpackPlayer;
+            m_backpack.Clean();
+            BackpackCapacityUpdate();
+        }
+
+        private void BackpackCapacityUpdate()
+        {
+            m_textBackpackCapacity.text = (m_backpack.GetPackgeCount().ToString("00") + "/" + BackpackCapacity.ToString("00"));
         }
 
         public void CreateEarnedMoneyText(int moneyEarned)
         {
 
+        }
+
+        public bool HasPackage()
+        {
+            return m_backpack.GetPackgeCount() > 0;
+        }
+
+        internal void LevelUp(int cost)
+        {
+            AllMoney -= cost;
+            BackpackCapacity++;
+            m_eventLevelUp?.Invoke();
+            m_meshPlayer.material.color = new Color(Random.Range(0f, 1f), Random.Range(0f, 1f), Random.Range(0f, 1f));
+        }
+
+        internal bool HasEnoughMoney(int cost)
+        {
+            return AllMoney >= cost;
+        }
+
+        internal bool Backpackfull()
+        {
+            return BackpackCapacity == m_backpack.GetPackgeCount();
         }
     }
 }

@@ -13,7 +13,8 @@ namespace Charlles
 
         private void OnTriggerEnter(Collider other)
         {
-            Collect();
+            if (!GameManager.Instance.Backpackfull())
+                Collect();
         }
 
         private void Collect()
