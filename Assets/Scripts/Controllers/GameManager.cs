@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
@@ -16,6 +15,8 @@ namespace Charlles
         [SerializeField] private UnityEvent m_eventColetable;
 
         [Header("Money")]
+        [SerializeField] private UIMoney m_prefabUIMoney;
+        [SerializeField] private RectTransform m_parentUI;
         [SerializeField] private TextMeshProUGUI m_textMoneyValue;
         [SerializeField] private UnityEvent m_eventChangeMoney;
 
@@ -53,6 +54,10 @@ namespace Charlles
         void Awake()
         {
             Instance = this;
+        }
+
+        void Start()
+        {
             BackpackCapacity = m_initialCapacity;
         }
 
@@ -63,16 +68,37 @@ namespace Charlles
             BackpackCapacityUpdate();
         }
 
-        public void SellAll(int m_price)
+        internal void SellAll(int m_price)
         {
             if (m_backpack.GetPackgeCount() == 0)
                 return;
 
-            CreateEarnedMoneyText(m_backpack.GetPackgeCount());
-            AllMoney += m_backpack.GetPackgeCount() * m_price;
+            int moneyEarned = m_backpack.GetPackgeCount() * m_price;
+            CreateEarnedMoneyText(moneyEarned, true);
+            AllMoney += moneyEarned;
 
             m_backpack.Clean();
             BackpackCapacityUpdate();
+        }
+
+        internal void LevelUp(int cost)
+        {
+            AllMoney -= cost;
+            BackpackCapacity++;
+
+            CreateEarnedMoneyText(cost, false);
+
+            m_eventLevelUp?.Invoke();
+            m_meshPlayer.material.color = new Color(Random.Range(0f, 1f), Random.Range(0f, 1f), Random.Range(0f, 1f));
+        }
+
+        public void CreateEarnedMoneyText(int moneyEarned, bool isPositive)
+        {
+            Vector3 position = Camera.main.WorldToScreenPoint(m_backpack.GetBackpack().position);
+            UIMoney uIMoney = Instantiate(m_prefabUIMoney, m_parentUI);
+            uIMoney.transform.position = position;
+
+            uIMoney.SetText((isPositive ? "+" : "-") + moneyEarned.ToString());
         }
 
         private void BackpackCapacityUpdate()
@@ -80,22 +106,9 @@ namespace Charlles
             m_textBackpackCapacity.text = (m_backpack.GetPackgeCount().ToString("00") + "/" + BackpackCapacity.ToString("00"));
         }
 
-        public void CreateEarnedMoneyText(int moneyEarned)
-        {
-
-        }
-
         public bool HasPackage()
         {
             return m_backpack.GetPackgeCount() > 0;
-        }
-
-        internal void LevelUp(int cost)
-        {
-            AllMoney -= cost;
-            BackpackCapacity++;
-            m_eventLevelUp?.Invoke();
-            m_meshPlayer.material.color = new Color(Random.Range(0f, 1f), Random.Range(0f, 1f), Random.Range(0f, 1f));
         }
 
         internal bool HasEnoughMoney(int cost)
