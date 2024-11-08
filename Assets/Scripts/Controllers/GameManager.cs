@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
@@ -8,22 +9,38 @@ namespace Charlles
     {
         public static GameManager Instance;
 
+
+        [Header("UI Game")]
+        [SerializeField] private GameObject m_panelUIGame;
+        [SerializeField] private GameObject m_uiPlay;
+
+
         [Header("Backpack")]
         [SerializeField] private int m_initialCapacity = 1;
         [SerializeField] private Backpack m_backpack;
+
+        [Space(10)]
         [SerializeField] private TextMeshProUGUI m_textBackpackCapacity;
-        [SerializeField] private UnityEvent m_eventColetable;
+
 
         [Header("Money")]
         [SerializeField] private UIMoney m_prefabUIMoney;
+
+        [Space(10)]
         [SerializeField] private RectTransform m_parentUI;
         [SerializeField] private TextMeshProUGUI m_textMoneyValue;
-        [SerializeField] private UnityEvent m_eventChangeMoney;
 
 
         [Header("LevelUp")]
         [SerializeField] private SkinnedMeshRenderer m_meshPlayer;
-        [SerializeField] private UnityEvent m_eventLevelUp;
+
+
+        [Header("Audios")]
+        [SerializeField] private AudioSource m_punchingSound;
+        [SerializeField] private AudioSource m_impactSound;
+        [SerializeField] private AudioSource m_collectingSound;
+        [SerializeField] private AudioSource m_sellSound;
+        [SerializeField] private AudioSource m_levelupSound;
 
         private int m_allMoney;
 
@@ -33,7 +50,6 @@ namespace Charlles
             set
             {
                 m_allMoney = value;
-                m_eventChangeMoney?.Invoke();
                 m_textMoneyValue.text = m_allMoney.ToString("00");
             }
         }
@@ -51,6 +67,8 @@ namespace Charlles
             }
         }
 
+        private bool m_playing;
+
         void Awake()
         {
             Instance = this;
@@ -61,10 +79,17 @@ namespace Charlles
             BackpackCapacity = m_initialCapacity;
         }
 
+        public void PlayGame()
+        {
+            m_uiPlay.SetActive(false);
+            m_panelUIGame.SetActive(true);
+            m_playing = true;
+        }
+
         public void AddNewPack()
         {
             m_backpack.NewPackage();
-            m_eventColetable?.Invoke();
+            m_collectingSound?.Play();
             BackpackCapacityUpdate();
         }
 
@@ -74,21 +99,22 @@ namespace Charlles
                 return;
 
             int moneyEarned = m_backpack.GetPackgeCount() * m_price;
-            CreateEarnedMoneyText(moneyEarned, true);
             AllMoney += moneyEarned;
+            m_sellSound?.Play();
 
             m_backpack.Clean();
+            CreateEarnedMoneyText(moneyEarned, true);
             BackpackCapacityUpdate();
         }
 
         internal void LevelUp(int cost)
         {
             AllMoney -= cost;
+            m_levelupSound?.Play();
+
             BackpackCapacity++;
 
             CreateEarnedMoneyText(cost, false);
-
-            m_eventLevelUp?.Invoke();
             m_meshPlayer.material.color = new Color(Random.Range(0f, 1f), Random.Range(0f, 1f), Random.Range(0f, 1f));
         }
 
@@ -119,6 +145,21 @@ namespace Charlles
         internal bool Backpackfull()
         {
             return BackpackCapacity == m_backpack.GetPackgeCount();
+        }
+
+        internal bool IsPlaying()
+        {
+            return m_playing;
+        }
+
+        internal void PlayPunchSound()
+        {
+            m_punchingSound?.Play();
+        }
+
+        internal void PlayImpactSound()
+        {
+            m_impactSound?.Play();
         }
     }
 }

@@ -1,6 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 
 namespace Charlles
@@ -17,6 +14,8 @@ namespace Charlles
             m_Animator.enabled = false;
             m_npcCollider.enabled = false;
             m_currentRigidbody.isKinematic = true;
+            GameManager.Instance.PlayImpactSound();
+
             Invoke(nameof(ActiveColiderColetable), m_delayToActiveColiderColetable);
         }
 

@@ -9,7 +9,7 @@ namespace Charlles
         [SerializeField] private Collider m_punchDamage;
         [SerializeField] private float m_delayToActiveColliderPunching = 1f;
         [SerializeField] private float m_delayToMoveAfterActiveColliderPunching = 1f;
-        [SerializeField] protected float m_PunchSpeed = 3;
+        [SerializeField] protected float m_punchSpeed = 3;
 
         private PlayerInput playerInput;
 
@@ -39,17 +39,23 @@ namespace Charlles
 
         public void OnMove(InputAction.CallbackContext context)
         {
-            Move(context.ReadValue<Vector2>());
+            if (GameManager.Instance.IsPlaying())
+                Move(context.ReadValue<Vector2>());
         }
 
         public void OnPunch(InputAction.CallbackContext context)
         {
-            if (context.started)
+            if (GameManager.Instance.IsPlaying())
             {
-                m_Animator.SetTrigger("Puch");
-                currentSpeed = m_PunchSpeed;
+                if (context.started)
+                {
+                    m_Animator.SetTrigger("Puch");
+                    currentSpeed = m_punchSpeed;
 
-                Invoke(nameof(ActiveColliderPunch), m_delayToActiveColliderPunching);
+                    GameManager.Instance.PlayPunchSound();
+
+                    Invoke(nameof(ActiveColliderPunch), m_delayToActiveColliderPunching);
+                }
             }
         }
 
