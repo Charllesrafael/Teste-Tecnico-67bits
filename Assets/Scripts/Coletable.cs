@@ -10,6 +10,7 @@ namespace Charlles
         [SerializeField] private GameObject m_parent;
         [SerializeField] private Collider m_Collider;
         [SerializeField] private GameObject m_coletableEffect;
+        [SerializeField] private Vector3 OffSet;
 
         private void OnTriggerEnter(Collider other)
         {
@@ -21,7 +22,7 @@ namespace Charlles
         {
             m_Collider.enabled = false;
             if (m_coletableEffect)
-                Instantiate(m_coletableEffect, transform.position, Quaternion.identity);
+                Instantiate(m_coletableEffect, transform.position + OffSet, Quaternion.identity);
 
             GameManager.Instance.AddNewPack();
             Destroy(m_parent);
